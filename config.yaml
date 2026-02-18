@@ -1,0 +1,111 @@
+# Root temp/output directories
+tmpdir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou_genome/tmp
+outdir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou_genome
+cadd_sv_dir: /home/jupyter/workspaces/longreadseqcontrolset/git/CADD-SV
+AnnotSV_dir: /home/jupyter/workspaces/longreadseqcontrolset/git/AnnotSV
+promoterAI_model: /home/jupyter/workspaces/longreadseqcontrolset/bin/promoterAI_model/promoterAI_v1_hg38_finetune
+
+# Run mode
+mode:
+    ancestry: False
+
+# Input data paths
+input_data:
+    aou_snf_dir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/sniffles2/call
+    precede_snf_dir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/sniffles2/call
+    target_gene: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/target_gene.txt
+
+# Reference files
+ref:
+    genome_build: hg38  # or "t2t"
+    genome_fasta: /home/jupyter/workspaces/longreadseqcontrolset/reference/human_GRCh38_no_alt_analysis_set.fasta
+    lrWGS_manifest: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/lrWGS_PacBio_manifest_CDRv8.csv
+    lrWGS_demographic: /home/jupyter/workspaces/longreadseqcontrolset/reference/AoU_lrWGS_demo.csv
+    tandem_repeats_hg38: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou/resource/human_GRCh38_no_alt_analysis_set.trf.bed
+    CoLoRdb_sv: /home/jupyter/workspaces/longreadseqcontrolset/reference/CoLoRSdb.GRCh38.v1.2.0.pbsv.jasmine.vcf.gz
+    CoLoRdb_snv: /home/jupyter/workspaces/longreadseqcontrolset/reference/CoLoRSdb.GRCh38.v1.2.0.deepvariant.glnexus.vcf.gz
+    hprc_sv: /home/jupyter/workspaces/longreadseqcontrolset/reference/hprc-v2.0-mc-grch38.wave.sv_indel.vcf
+    hprc: /home/jupyter/workspaces/longreadseqcontrolset/reference/hprc-v2.0-mc-grch38.wave.vcf.gz
+    dbnsfp: /home/jupyter/workspaces/longreadseqcontrolset/reference/dbNSFP/dbNSFP5.3a_grch38.gz
+    aou_covariate: /home/jupyter/workspaces/longreadseqcontrolset/reference/aou_covariates.tsv
+    sniffles_rename: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/sniffles_rename_map.txt
+    
+
+# Precede
+    precede_masterspreadsheet: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/precede_master_spreadsheet.csv
+    svafotate_bed: /home/jupyter/workspaces/longreadseqcontrolset/reference/SVAFotate_core_SV_popAFs.GRCh38.v4.1.bed.gz
+    
+# Scripts
+script:
+    build_cohort: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/build_cohort.py
+    target_info: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/target_info.py
+    vep_gnomad: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/run_vep_gnomADg.sh
+    vep_sv: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/run_vep_sv.sh
+    vep_snv: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/run_vep_snv.sh
+    vep_parse: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/vep_parse.py
+    sv_filter_1: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/sv_filter_1.py
+    sv_filter_2: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/sv_filter_2.py
+    vcf_to_bed: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/vcf_to_bed.py
+    tag_cluster: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/tag_cluster.py
+    variant_merge: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/variant_merge.py
+    analysis_INDEL_1: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/analysis_INDEL_1.py
+    prep_cadd_sv: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/prep_cadd_sv.py
+    merge_AF: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/merge_AF.py
+    snv_filter_1: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/snv_filter_1.py
+    snv_filter_2: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/snv_filter_2.py
+    enrich_pathogenic_sv: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/enrich_pathogenic_sv.py
+    prep_promoterai: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/prep_promoterai.py
+    sv_prioritize: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/sv_prioritize.py
+    snv_prioritize: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/snv_prioritize.py
+    find_surrogate_snp_sh: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/find_surrogate_snp.sh
+    find_surrogate_snp_py: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/find_surrogate_snp.py
+    family_segregation: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/family_segregation.py
+    
+snv_vcf:
+    precede_unfiltered: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/snv/all_samples.GRCh38.small_variants.phased.vcf.gz
+    precede_filtered: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/snv/all_samples.GRCh38.small_variants.phased.filtered.vcf.gz
+    v7: /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/cohort_for_GLNexus_2023Q1_1027.g.vcf.bgz
+    v8_BCM_Rev_high : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.BCM_Rev_high.QualFT40.g.vcf.bgz
+    v8_BCM_Seq_high : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.BCM_Seq_high.QualFT40.g.vcf.bgz
+    v8_BI_Rev_mid : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.BI_Rev_mid.QualFT40.g.vcf.bgz
+    v8_BI_Seq_high : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.BI_Seq_high.QualFT40.g.vcf.bgz
+    v8_BI_Seq_mid : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.BI_Seq_mid.QualFT40.g.vcf.bgz
+    v8_HA_Rev_mid : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.HA_Rev_mid.QualFT40.g.vcf.bgz
+    v8_UW_Rev_high : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.UW_Rev_high.QualFT40.g.vcf.bgz
+    v8_UW_Seq_high : /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/tmp/aou_joint_call/v8.UW_Seq_high.QualFT40.g.vcf.bgz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
