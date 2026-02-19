@@ -18,7 +18,9 @@ def main(target, transcript, outdir, padding=10000):
     df.columns = ['gene_name','gene_id','chr','start','end','strand']
     df= df.loc[df['gene_name'].apply(lambda x: x in t)]
     missing = set(t) - set(df["gene_name"])
-    if missing: raise ValueError(f"Gene info failed to search: {sorted(missing)}")
+    
+    if missing: 
+        print(f"WARNING: The following genes were not found in the transcript file (likely non-coding/no MANE Select): {sorted(missing)}")
     df.to_csv(os.path.join(outdir,'transcript.csv'),index=False)
     
     df_target = df[["chr","start","end","gene_name"]].copy()

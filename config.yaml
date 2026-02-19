@@ -14,6 +14,7 @@ input_data:
     aou_snf_dir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede_aou/sniffles2/call
     precede_snf_dir: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/sniffles2/call
     target_gene: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/target_gene.txt
+    target_ld_block: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/resource/ld_blocks.tsv
 
 # Reference files
 ref:
@@ -60,6 +61,7 @@ script:
     find_surrogate_snp_sh: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/find_surrogate_snp.sh
     find_surrogate_snp_py: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/find_surrogate_snp.py
     family_segregation: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/family_segregation.py
+    expand_gene_list: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/expand_gene_list.py
     
 snv_vcf:
     precede_unfiltered: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/snv/all_samples.GRCh38.small_variants.phased.vcf.gz

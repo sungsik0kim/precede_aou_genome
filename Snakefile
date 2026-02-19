@@ -223,7 +223,9 @@ rule sniffles_joint_call:
 
 rule make_target_bed:
     input:
-        target_gene= config['input_data']['target_gene']
+        target_gene= config['input_data']['target_gene'],
+        ld_block = config['input_data']['target_ld_block'],
+        
     log:
         f"{outdir}/target_info/log.txt"
     threads:
@@ -233,22 +235,30 @@ rule make_target_bed:
     output:
         f'{outdir}/target_info/target_gene.sorted.bed.gz',
         f'{outdir}/target_info/target_gene_promoter.sorted.bed',
-        f'{outdir}/target_info/target_gene_promoter.sorted.bed.gz'
+        f'{outdir}/target_info/target_gene_promoter.sorted.bed.gz',
+        f'{outdir}/target_info/target_gene_target_ld.bed',
+        f'{outdir}/target_info/target_gene_target_ld.bed.gz'
     params:
         outdir= f"{outdir}/target_info",
-        script= config["script"]["target_info"],
-        padding = 100000
+        expand_gene_list = config["script"]["expand_gene_list"],
+        target_info= config["script"]["target_info"],
+        target_gene_expanded = f'{outdir}/target_info/target_gene_expanded.txt',
+        padding = 200000
     shell:
         """
+        set -e -o pipefail
         cd {params.outdir}
-        #wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_45/gencode.v45.annotation.gtf.gz
-        #zcat gencode.v45.annotation.gtf.gz | grep -w "gene_name" > gencode.v45.annotation.gtf
-        #grep -w "gene" gencode.v45.annotation.gtf  > gene.gtf
-        #grep -w "transcript" gencode.v45.annotation.gtf | grep 'MANE_Select' > transcript.gtf
-        #grep -w "exon" gencode.v45.annotation.gtf | grep 'MANE_Select' > exon.gtf
-        #grep -w "UTR" gencode.v45.annotation.gtf | grep 'MANE_Select' > utr.gtf
+        wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_45/gencode.v45.annotation.gtf.gz
+        zcat gencode.v45.annotation.gtf.gz | grep -w "gene_name" > gencode.v45.annotation.gtf
+        grep -w "gene" gencode.v45.annotation.gtf  > gene.gtf
+        grep -w "transcript" gencode.v45.annotation.gtf | grep 'MANE_Select' > transcript.gtf
+        grep -w "exon" gencode.v45.annotation.gtf | grep 'MANE_Select' > exon.gtf
+        grep -w "UTR" gencode.v45.annotation.gtf | grep 'MANE_Select' > utr.gtf
         
-        python {params.script} --target {input.target_gene} --transcript {params.outdir}/transcript.gtf --padding {params.padding} --outdir {params.outdir}
+        ## Append Gene list nearby LD and use this appended target gene list
+        python {params.expand_gene_list} --target_ld {input.ld_block} --target_gene {input.target_gene} --transcript {params.outdir}/transcript.gtf --output {params.target_gene_expanded}
+        
+        python {params.target_info} --target {params.target_gene_expanded} --transcript {params.outdir}/transcript.gtf --padding {params.padding} --outdir {params.outdir}
         
         sort -k1,1V -k2,2n {params.outdir}/target_gene.bed > {params.outdir}/target_gene.sorted.bed
         bgzip -c {params.outdir}/target_gene.sorted.bed > {params.outdir}/target_gene.sorted.bed.gz
@@ -258,12 +268,23 @@ rule make_target_bed:
         bgzip -c {params.outdir}/target_gene_promoter.sorted.bed > {params.outdir}/target_gene_promoter.sorted.bed.gz
         tabix -p bed {params.outdir}/target_gene_promoter.sorted.bed.gz
         
+        ## Combine with LD blocks
+        cat <(tail -n +2 {input.ld_block} | awk 'BEGIN{{OFS="\t"}} {{print "chr"$1, $2, $3}}') \
+            <(awk 'BEGIN{{OFS="\t"}} {{print $1, $2, $3}}' {params.outdir}/target_gene.sorted.bed) \
+            | sort -k1,1V -k2,2n | bedtools merge -i - > {params.outdir}/target_gene_target_ld.bed
+        
+        ## 2. Append the manual entry (non-MANE transcript)
+        echo -e "chr3\t169564610\t169965060" >> {params.outdir}/target_gene_target_ld.bed
+        sort -k1,1V -k2,2n {params.outdir}/target_gene_target_ld.bed -o {params.outdir}/target_gene_target_ld.bed
+        
+        bgzip -c {params.outdir}/target_gene_target_ld.bed > {params.outdir}/target_gene_target_ld.bed.gz
+        tabix -p bed {params.outdir}/target_gene_target_ld.bed.gz
         """
         
 rule intersect_vcf:
     input:
         joint_vcf= f'{SV_JOINT_CALL_PATH}/sniffles2_joint_call.{ref_genome}.vcf.gz',
-        bed= f"{outdir}/target_info/target_gene.sorted.bed.gz",
+        bed= f"{outdir}/target_info/target_gene_target_ld.bed.gz",
     log:
         f"{outdir}/sniffles2/filter_vcf_log.txt"
     threads:
@@ -533,7 +554,7 @@ rule find_surrogate_snp: # Some code blocks are commented out. BE CAUTIOUS
         f'{outdir}/plink/surrogate_snp.tsv'
     params:
         sv_dir = f'{outdir}/sv',
-        snv_dir = f'{outdir}/snv',
+        snv_dir = f'{MERGED_SNV_PATH}',
         out_dir = f'{outdir}/plink',
         find_surrogate_snp_sh = config["script"]["find_surrogate_snp_sh"],
         find_surrogate_snp_py = config["script"]["find_surrogate_snp_py"],
@@ -775,7 +796,7 @@ rule intersect_vcf_snv:
     input:
 #         vcf= f'{outdir}/snv/merged/AoU_Precede_chr{{chrom}}.vcf.gz',
         vcf= f'{MERGED_SNV_PATH}/AoU_Precede_chr{{chrom}}.vcf.gz',
-        bed = f'{outdir}/target_info/target_gene.sorted.bed.gz'
+        bed = f'{outdir}/target_info/target_gene_target_ld.bed.gz'
     log:
         f"{outdir}/snv/target/intersect_chr{{chrom}}_vcf_snv_log.txt"
     threads:

@@ -1,5 +1,4 @@
 snakemake all \
-  --dry-run \
   --cores 32 \
   --resources mem_mb=104000 copyq=8 \
   --configfile config.yaml \

@@ -26,7 +26,7 @@ echo "Intersect the SNV/Indels using the BED"
 for CHROM in {1..22} X Y; do
     bcftools view --threads 4 -R $OUTDIR/target_gene.sorted.bed.gz -Oz \
         -o "$OUTDIR/tmp/snv_intersect_chr${CHROM}.vcf.gz" \
-        $SNV_DIR/merged/AoU_Precede_chr"${CHROM}".vcf.gz &
+        $SNV_DIR/AoU_Precede_chr"${CHROM}".vcf.gz &
 done
 wait
 
