@@ -62,6 +62,7 @@ script:
     find_surrogate_snp_py: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/find_surrogate_snp.py
     family_segregation: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/family_segregation.py
     expand_gene_list: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/expand_gene_list.py
+    make_ag_input_sv: /home/jupyter/workspaces/longreadseqcontrolset/git/precede_aou_genome/script/make_ag_input_sv.py
     
 snv_vcf:
     precede_unfiltered: /home/jupyter/workspaces/longreadseqcontrolset/output/precede/snv/all_samples.GRCh38.small_variants.phased.vcf.gz

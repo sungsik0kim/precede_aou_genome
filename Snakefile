@@ -80,8 +80,7 @@ rule all:
     input: 
         f'{outdir}/result/snv_prioritize.csv',
         f'{outdir}/result/sv_prioritize.csv',
-        f'{outdir}/result/phewas_variants.txt'
-        
+        f'{outdir}/result/sv_ag_input.csv'
 
 rule sv:
     input: 
@@ -544,11 +543,12 @@ rule sv_filter_2:
         tabix -p vcf {output.callset}
         """
 
-rule find_surrogate_snp: # Some code blocks are commented out. BE CAUTIOUS
+rule find_surrogate_snp: # Some code blocks may be commented out. BE CAUTIOUS
     input:
         sv= f'{outdir}/sv/filter/sv_filter2.vcf.gz',
         snv= expand(f'{MERGED_SNV_PATH}/AoU_Precede_chr{{chrom}}.vcf.gz', chrom=CHROMS),
-        sniffles_rename = config["ref"]["sniffles_rename"]
+        sniffles_rename = config["ref"]["sniffles_rename"],
+        target_interval = f'{outdir}/target_info/target_gene_target_ld.bed'
             
     output:
         f'{outdir}/plink/surrogate_snp.tsv'
@@ -566,7 +566,8 @@ rule find_surrogate_snp: # Some code blocks are commented out. BE CAUTIOUS
         f'{outdir}/log/find_surrogate_snp.log'
     shell:
         """
-        bash {params.find_surrogate_snp_sh} {params.sv_dir} {params.snv_dir} {params.out_dir} {input.sniffles_rename} > {log} 2>&1
+        bash {params.find_surrogate_snp_sh} {params.sv_dir} {params.snv_dir} {params.out_dir} \
+                {input.sniffles_rename} {input.target_interval} > {log} 2>&1
         python {params.find_surrogate_snp_py} --plink_ld {params.out_dir}/results_ld.vcor --outcsv {output} >> {log} 2>&1
         """        
         
@@ -1002,19 +1003,21 @@ rule snv_filter_2:
     threads:
         8
     resources:
-        mem_mb=28000
+        mem_mb=200000
     output:
         csv= f'{outdir}/snv/annotate/snv_filter2.csv',
         id= f'{outdir}/snv/annotate/snv_filter2_id.txt',
         bed= f'{outdir}/snv/annotate/snv_filter2.bed',
         vcf= f'{outdir}/snv/annotate/snv_filter2.vcf.gz',
         callset= f'{outdir}/snv/annotate/snv_filter2.callset_only.vcf.gz',
+        temp_vcf=temp(f'{outdir}/snv/annotate/snv_filter1_only_GT.vcf.gz')
     params:
         script = config["script"]["snv_filter_2"],
         outdir = f'{outdir}/snv/annotate'
     shell:
         """
-        python {params.script} --vcf {input.vcf} \
+        bcftools annotate -x ^FORMAT/GT {input.vcf} -Oz -o {output.temp_vcf}
+        python -u {params.script} --vcf {output.temp_vcf} \
                 --af {input.af} \
                 --gnomad {input.gnomad} \
                 --dbnsfp {input.dbnsfp} \
@@ -1170,11 +1173,20 @@ rule prep_PheWAS:
         python3 -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin); sub = df[df["prioritized_variant"] == 1]; print("\\n".join(sub["CHROM"].str[3:] + "-" + sub["POS"].astype(str) + "-" + sub["REF"] + "-" + sub["ALT"]))' < {input.snv}  >> {output}
         """
         
-
-        
-        
-        
-        
+rule make_ag_input:
+    input:
+        snv=f'{outdir}/result/snv_prioritize.csv',
+        sv=f'{outdir}/result/sv_prioritize.csv'
+    output:
+        snv=f'{outdir}/result/snv_ag_input.csv',
+        sv=f'{outdir}/result/sv_ag_input.csv'
+    params:
+        script = config["script"]["make_ag_input_sv"]
+    shell:
+        """
+        cat {input.snv} | awk -F"," ' {{ print $1":"$2":"$4":"$5"," }} ' | tail -n +2 > {output.snv}
+        python {params.script} --input {input.sv} --output {output.sv}
+        """
         
         
         

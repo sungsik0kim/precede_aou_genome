@@ -1,6 +1,6 @@
 snakemake all \
-  --cores 32 \
-  --resources mem_mb=104000 copyq=8 \
+  --cores 16 \
+  --resources mem_mb=52000 copyq=8 \
   --configfile config.yaml \
   --keep-going \
   --rerun-triggers mtime \

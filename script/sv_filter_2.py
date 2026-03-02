@@ -166,7 +166,7 @@ def main(vcf, af, case, ctrl, ctrl2, ctrl3, master, aou_covar, outdir):
     df_vcf.loc[:,'AoU_Max_AF'] = df_vcf[['AoU_EUR_AF','AoU_AFR_AF','AoU_AMR_AF','AoU_EAS_AF','AoU_SAS_AF','AoU_MID_AF']].max(axis=1)
 
     mask_aou_1 = (df_vcf['AoU_Max_AF']<0.01)
-#     mask_aou_2 = (df_vcf['case_EAF']>(df_vcf['AoU_Max_AF'])) # AF@Case > AF@AoU
+    mask_aou_2 = (df_vcf['case_EAF']>(df_vcf['AoU_Max_AF'])) # AF@Case > AF@AoU
 
     ## ::Higher AF than Non-FPC samples? :: Based on Effective Allele Frequenct (EAF)
     mask_precede_1 = (df_vcf['case_EAF']>(df_vcf['internal_ctrl_AF'])) # AF@Case > AF@Internal Ctrl
@@ -178,7 +178,8 @@ def main(vcf, af, case, ctrl, ctrl2, ctrl3, master, aou_covar, outdir):
     print("gnomAD < 1% : {}".format(df_vcf.loc[mask_gnomad].shape[0]))
     print("HPRC<1% & CoLoRS<1% : {}".format(df_vcf.loc[mask_gnomad&mask_colors&mask_hprc].shape[0]))
     print("AoU<1% : {}".format(df_vcf.loc[mask_gnomad&mask_colors&mask_hprc&mask_aou_1].shape[0]))
-    mask_db = mask_gnomad&mask_colors&mask_hprc&mask_aou_1
+    print("FPC>AoU_Max_AF : {}".format(df_vcf.loc[mask_gnomad&mask_colors&mask_hprc&mask_aou_1&mask_aou_2].shape[0]))
+    mask_db = mask_gnomad&mask_colors&mask_hprc&mask_aou_1&mask_aou_2
     print("FPC > internal_ctrl_AF : {}".format(df_vcf.loc[mask_db&mask_precede_1].shape[0]))
     
 #     print("FPC > AoU : {}".format(df_vcf.loc[mask_db&mask_aou_1&mask_aou_2].shape[0]))

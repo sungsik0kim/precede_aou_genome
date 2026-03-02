@@ -3,9 +3,10 @@ import pandas as pd
 import gzip
 from tqdm import tqdm
 import numpy as np
+import gc
 import argparse
 
-def read_vcf_gz(vcf_gz):
+def read_vcf_gz(vcf_gz, usecols=None):
     skip_lines = 0
     with gzip.open(vcf_gz, 'rt') as f:
         for line in f:
@@ -16,12 +17,13 @@ def read_vcf_gz(vcf_gz):
     df_vcf = pd.read_csv(
         vcf_gz, 
         sep='\t', 
-        skiprows=skip_lines
+        skiprows=skip_lines,
+        usecols=usecols 
     )
     df_vcf = df_vcf.rename(columns={'#CHROM': 'CHROM'})
     return df_vcf
 
-def read_vcf(vcf):
+def read_vcf(vcf, usecols=None):
     skip_lines = 0
     with open(vcf, 'rt') as f:
         for line in f:
@@ -32,7 +34,8 @@ def read_vcf(vcf):
     df_vcf = pd.read_csv(
         vcf, 
         sep='\t', 
-        skiprows=skip_lines
+        skiprows=skip_lines,
+        usecols=usecols 
     )
     df_vcf = df_vcf.rename(columns={'#CHROM': 'CHROM'})
     return df_vcf
@@ -101,6 +104,7 @@ def main(vcf, af, gnomad, dbnsfp, outdir, case, ctrl, ctrl2, ctrl3, master, aou_
     print('[log] Read and Parse Data...')
     case_id = pd.read_csv(case)['analysis_sample_id'].astype(str).tolist()
     ctrl_id = pd.read_csv(ctrl)['analysis_sample_id'].astype(str).tolist()
+    
     df_af = read_vcf_gz(af)
     df_gnomad = read_vcf(gnomad)
     df_dbnsfp = read_vcf(dbnsfp)
@@ -150,10 +154,10 @@ def main(vcf, af, gnomad, dbnsfp, outdir, case, ctrl, ctrl2, ctrl3, master, aou_
         df_dbnsfp[col] = _df_dbnsfp[col]
     
     print('[log] Parsing PRECEDE / AoU ...')
-    cols = case_id+ctrl_id
-    cols = [col for col in cols if col in df_vcf.columns]
-    for col in cols:
-            df_vcf[col] = df_vcf[col].str.split(':').str[0]
+#     cols = case_id+ctrl_id
+#     cols = [col for col in cols if col in df_vcf.columns]
+#     for col in cols:
+#             df_vcf[col] = df_vcf[col].str.split(':').str[0]
 
     print('[log] EAF for Precede FPC')
     df_vcf['case_EAF'] = get_EAF(df_vcf[case_id]
@@ -228,6 +232,15 @@ def main(vcf, af, gnomad, dbnsfp, outdir, case, ctrl, ctrl2, ctrl3, master, aou_
     df_merge = pd.merge(df_vcf, df_annotation.drop(columns=['QUAL', 'FILTER', 'INFO'])
                             ,on=['CHROM', 'POS', 'ID', 'REF', 'ALT'], how='inner')
     
+    del df_af
+    del df_gnomad
+    del df_dbnsfp
+    del df_vcf
+    del df_annotation
+    del df_unaffected
+    del df_int_ctrl
+    gc.collect()
+    
     print('[log] Filtering ...')
     
     mask_qual = df_merge['FILTER']=="PASS"
@@ -237,19 +250,20 @@ def main(vcf, af, gnomad, dbnsfp, outdir, case, ctrl, ctrl2, ctrl3, master, aou_
     mask_colors = df_merge['CoLoRSdb_AF'] < 0.01
 
     mask_aou_1 = df_merge['AoU_Max_AF']< 0.01
-#     mask_aou_2 = df_merge['case_EAF']> df_merge['AoU_Max_AF']
+    mask_aou_2 = df_merge['case_EAF']> df_merge['AoU_Max_AF']
 
     mask_precede_1 = df_merge['case_EAF'] > df_merge['internal_ctrl_AF']
 #     mask_precede_2 = df_merge['case_EAF'] > df_merge['Unaffected_Rel_EAF']
 
-    mask_db= mask_gnomad & mask_hprc & mask_colors & mask_aou_1
+    mask_db= mask_gnomad & mask_hprc & mask_colors & mask_aou_1 & mask_aou_2
     mask_precede= mask_precede_1
     
     
     print("    Origianl Filter Passed Variants : {}".format(df_merge.loc[mask_qual].shape[0]))
     print("    gnomAD < 1% : {}".format(df_merge.loc[mask_qual&mask_gnomad].shape[0]))
     print("    HPRC<1% & CoLoRS<1% : {}".format(df_merge.loc[mask_qual&mask_gnomad&mask_hprc&mask_colors].shape[0]))
-    print("    AoU<1% : {}".format(df_merge.loc[mask_qual&mask_db].shape[0]))
+    print("    AoU<1% : {}".format(df_merge.loc[mask_qual&mask_gnomad&mask_hprc&mask_colors&mask_aou_1].shape[0]))
+    print("    FPC > AoU_Max : {}".format(df_merge.loc[mask_qual&mask_db].shape[0]))
     print("    FPC > internal_ctrl_AF : {}".format(df_merge.loc[mask_qual&mask_db&mask_precede].shape[0]))
 
     print('[log] Add columns: OR, FPC_sample_id...')
