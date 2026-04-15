@@ -40,7 +40,7 @@ def main(vcf, promoter_bed, output):
                 ,'pos': row['pos']
                 ,'ref': row['ref']
                 ,'alt': row['alt']
-                ,'strand': row_promoter[4]
+                ,'strand': 1 if row_promoter[4]=='+' else -1
                 ,'gene': row_promoter[3]
             })
     

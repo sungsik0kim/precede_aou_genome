@@ -65,7 +65,7 @@ target_snv.extend(
 
 target_dev.extend(
     [
-        
+        f'{outdir}/sv/filter/sv_filter2.vcf.gz'
     ]
 )
 
@@ -1187,14 +1187,5 @@ rule make_ag_input:
         cat {input.snv} | awk -F"," ' {{ print $1":"$2":"$4":"$5"," }} ' | tail -n +2 > {output.snv}
         python {params.script} --input {input.sv} --output {output.sv}
         """
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         

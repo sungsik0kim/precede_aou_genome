@@ -1,6 +1,7 @@
 snakemake all \
-  --cores 16 \
-  --resources mem_mb=52000 copyq=8 \
+  --cores 8 \
+  --dry-run \
+  --resources mem_mb=15000 copyq=8 \
   --configfile config.yaml \
   --keep-going \
   --rerun-triggers mtime \
