@@ -377,8 +377,9 @@ rule sv_filter_1:
     resources:
         mem_mb=48000
     params:
-        script = config["script"]["sv_filter_1"],
         outdir = f'{outdir}/sv/filter',
+        # script = config["script"]["sv_filter_1"],
+        
         
         
     conda:
